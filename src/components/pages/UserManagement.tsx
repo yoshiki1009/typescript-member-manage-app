@@ -1,14 +1,48 @@
-import {memo, VFC} from "react";
-import { Wrap, WrapItem } from "@chakra-ui/react";
+import { memo, useEffect, VFC, useCallback } from 'react'
+import { Center, Spinner, useDisclosure, Wrap, WrapItem } from '@chakra-ui/react'
 
-import { UserCard } from "../organism/user/UserCard";
+import { UserCard } from '../organism/user/UserCard'
+import { useAllUsers } from '../../hooks/useAllUsers'
+import { UserDetailModal } from '../organism/user/UserDetailModal'
+import { useSelectUser } from '../../hooks/useSelectUser'
 
-export const UserManagement: VFC = memo(() =>{
-  return (
-    <Wrap p={{base:4, md:10}}>
-      <WrapItem>
-        <UserCard imageUrl="https://source.unsplash.com/random" userName="yoshi" fullName="Yoshiki Sakai" />
-      </WrapItem>
-    </Wrap>
+export const UserManagement: VFC = memo(() => {
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { getUsers, users, loading } = useAllUsers()
+  const { onSelectUser, selectedUser } = useSelectUser()
+
+  // eslint-disable-next-line
+  useEffect(() => getUsers(), [])
+
+  const onClickUser = useCallback(
+    (id: number) => {
+      onSelectUser({ id, users, onOpen })
+    },
+    [users, onSelectUser, onOpen]
   )
-});
+
+  return (
+    <>
+      {loading ? (
+        <Center h="100vh">
+          <Spinner />
+        </Center>
+      ) : (
+        <Wrap p={{ base: 4, md: 10 }}>
+          {users.map((user) => (
+            <WrapItem key={user.id} mx="auto">
+              <UserCard
+                id={user.id}
+                imageUrl="https://source.unsplash.com/random"
+                userName={user.username}
+                fullName={user.name}
+                onClick={onClickUser}
+              />
+            </WrapItem>
+          ))}
+        </Wrap>
+      )}
+      <UserDetailModal user={selectedUser} isOpen={isOpen} onClose={onClose} />
+    </>
+  )
+})
