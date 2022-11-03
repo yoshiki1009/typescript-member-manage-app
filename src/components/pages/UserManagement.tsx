@@ -5,11 +5,13 @@ import { UserCard } from '../organism/user/UserCard'
 import { useAllUsers } from '../../hooks/useAllUsers'
 import { UserDetailModal } from '../organism/user/UserDetailModal'
 import { useSelectUser } from '../../hooks/useSelectUser'
+import { useLoginUser } from '../../hooks/useLoginUser'
 
 export const UserManagement: VFC = memo(() => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const { getUsers, users, loading } = useAllUsers()
   const { onSelectUser, selectedUser } = useSelectUser()
+  const { loginUser } = useLoginUser()
 
   // eslint-disable-next-line
   useEffect(() => getUsers(), [])
@@ -42,7 +44,7 @@ export const UserManagement: VFC = memo(() => {
           ))}
         </Wrap>
       )}
-      <UserDetailModal user={selectedUser} isOpen={isOpen} onClose={onClose} />
+      <UserDetailModal user={selectedUser} isOpen={isOpen} onClose={onClose} isAdmin={loginUser?.isAdmin} />
     </>
   )
 })

@@ -1,31 +1,42 @@
-import { useCallback, useState } from "react"
-import axios from "axios";
-import { useHistory } from "react-router-dom";
+import { useCallback, useState } from 'react'
+import axios from 'axios'
+import { useHistory } from 'react-router-dom'
 
+import { User } from '../types/api/user'
+import { useMessage } from './useMessage'
+import { useLoginUser } from './useLoginUser'
 
-import { User } from "../types/api/user";
-import { useMessage } from "./useMessage";
+export const useAuth = () => {
+  const history = useHistory()
+  const { showMessage } = useMessage()
+  const { setLoginUser } = useLoginUser()
 
+  const [loading, setLoading] = useState(false)
 
-export const useAuth = () =>{
-  const history = useHistory();
-  const {showMessage} = useMessage();
+  const login = useCallback(
+    (id: string) => {
+      setLoading(true)
 
-  const [loading, setLoading] = useState(false);
+      axios
+        .get<User>(`https://jsonplaceholder.typicode.com/users/${id}`)
+        .then((res) => {
+          if (res.data) {
+            const isAdmin = res.data.id === 10 ? true : false
+            setLoginUser({ ...res.data, isAdmin })
+            showMessage({ title: 'Logged in', status: 'success' })
+            history.push('/home')
+          } else {
+            showMessage({ title: 'User not found', status: 'error' })
+            setLoading(false)
+          }
+        })
+        .catch(() => {
+          showMessage({ title: 'Failed to login', status: 'error' })
+          setLoading(false)
+        })
+    },
+    [history, showMessage, setLoginUser]
+  )
 
-  const login = useCallback((id: string) =>{
-    setLoading(true);
-
-    axios.get<User>(`https://jsonplaceholder.typicode.com/users/${id}`).then((res) =>{
-      if(res.data){
-        showMessage({title:"Logged in" , status: "success"})
-        history.push('/home');
-      }else{
-        showMessage({title:"User not found" , status: "error"})
-      }
-    }).catch(() => showMessage({title:"Failed to login" , status: "error"})).finally(() => setLoading(false))
-  }, [history, showMessage]);
-
-
-  return {login, loading}
+  return { login, loading }
 }
